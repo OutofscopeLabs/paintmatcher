@@ -22,7 +22,7 @@ export function PaintDetail({ paint, onClose, onNavigate }: { paint: Paint; onCl
           <span className="stat">{isCustom ? "Unlisted paint" : `${BRAND_LABEL[paint.brand]} · ${paint.range}${paint.code ? ` · ${paint.code}` : ""}`}</span>
           <button className="btn small ghost" onClick={onClose} aria-label="Close">✕</button>
         </div>
-        <div className={`hero${paint.type === "metallic" ? " swatch metallic" : ""}`} style={{ background: paint.hex, color: textOn(paint.hex) }}>
+        <div className={`hero${paint.finish === "metallic" ? " swatch metallic" : ""}`} style={{ background: paint.hex, color: textOn(paint.hex) }}>
           <div>
             <h2>{paint.name}</h2>
             <div style={{ opacity: .85, fontSize: ".85rem" }}>{paint.hex} · {info.colour}</div>

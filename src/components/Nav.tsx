@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCollection } from "@/lib/collection-context";
 
-const LINKS = [["/", "Scan"], ["/collection", "Collection"], ["/map", "Map"]] as const;
+const LINKS = [["/", "Scan"], ["/collection", "Collection"], ["/map", "Map"], ["/catalog", "Encyclopedia"]] as const;
 
 export function Nav() {
   const path = usePathname();

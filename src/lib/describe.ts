@@ -207,7 +207,7 @@ export function similarPaints(p: Paint, opts: { limit?: number; otherBrandsOnly?
     if (otherBrandsOnly && q.brand === p.brand) continue;
     if (sameType && q.type !== p.type) continue;
     // Metallics and non-metallics never look alike on the model.
-    if ((q.type === "metallic") !== (p.type === "metallic")) continue;
+    if ((q.finish === "metallic") !== (p.finish === "metallic")) continue;
     out.push({ paint: q, distance: deltaE(lab, hexToLab(q.hex)) });
   }
   out.sort((a, b) => a.distance - b.distance);

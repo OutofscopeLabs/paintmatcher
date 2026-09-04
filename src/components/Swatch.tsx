@@ -5,5 +5,5 @@ export function Swatch({ hex, size = 28, metallic = false, title }: { hex: strin
 }
 
 export function PaintSwatch({ paint, size }: { paint: Paint; size?: number }) {
-  return <Swatch hex={paint.hex} size={size} metallic={paint.type === "metallic"} title={`${paint.name} ${paint.hex}`} />;
+  return <Swatch hex={paint.hex} size={size} metallic={paint.finish === "metallic"} title={`${paint.name} ${paint.hex}`} />;
 }

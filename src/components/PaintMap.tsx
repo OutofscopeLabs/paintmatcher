@@ -93,7 +93,7 @@ export function PaintMap({ points, onSelect, selectedId }: { points: MapPoint[];
         {ordered.map(({ paint, owned, x, y }) => (
           <path key={paint.id} d={marker(paint.brand, x, y, owned ? r : r * 0.8)}
             fill={paint.hex} fillOpacity={owned ? 1 : 0.28}
-            stroke={paint.id === selectedId ? "currentColor" : paint.type === "metallic" ? "#fff" : "rgba(0,0,0,.35)"}
+            stroke={paint.id === selectedId ? "currentColor" : paint.finish === "metallic" ? "#fff" : "rgba(0,0,0,.35)"}
             strokeWidth={paint.id === selectedId ? 2.5 : owned ? 1 : 0.5}
             style={{ cursor: "pointer" }}
             onClick={(e) => { e.stopPropagation(); onSelect(paint); }}

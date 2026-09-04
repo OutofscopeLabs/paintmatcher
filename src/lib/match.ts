@@ -83,14 +83,17 @@ export function matchDetection(det: Detection, limit = 5): MatchResult {
       const r = rangeMatches(det.range, p.range);
       if (r > 0) sim += 0.06;
       else if (r < 0) sim -= 0.12;
+      // With no range read, prefer the brush ranges over airbrush/spray lines, whose bottles say so on the label.
+      else if (/\bair\b|spray/i.test(p.range)) sim -= 0.03;
       // A code that exists but did not match is a strong negative for that paint.
       if (det.code && p.code && normalizeCode(det.code) !== normalizeCode(p.code)) sim -= 0.15;
-      candidates.push({ paint: p, score: Math.min(1, Math.max(0, sim)), reason: exact ? "name" : "fuzzy" });
+      candidates.push({ paint: p, score: Math.max(0, sim), reason: exact ? "name" : "fuzzy" });
     }
   }
 
   candidates.sort((a, b) => b.score - a.score);
-  const top = candidates.slice(0, limit);
+  // Sort on the raw score (bonuses can push it past 1), then clamp for display.
+  const top = candidates.slice(0, limit).map((c) => ({ ...c, score: Math.min(1, c.score) }));
   const best = top[0] && top[0].score >= 0.6 ? top[0] : undefined;
   return { detection: det, best, candidates: top };
 }

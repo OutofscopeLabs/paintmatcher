@@ -9,9 +9,9 @@ describe("catalog integrity", () => {
   it("has a substantial catalog for all three brands", () => {
     const byBrand = new Map<string, number>();
     for (const p of ALL_PAINTS) byBrand.set(p.brand, (byBrand.get(p.brand) ?? 0) + 1);
-    expect(byBrand.get("citadel")).toBeGreaterThan(100);
-    expect(byBrand.get("army_painter")).toBeGreaterThan(100);
-    expect(byBrand.get("vallejo")).toBeGreaterThan(200);
+    expect(byBrand.get("citadel")).toBeGreaterThan(300);
+    expect(byBrand.get("army_painter")).toBeGreaterThan(500);
+    expect(byBrand.get("vallejo")).toBeGreaterThan(900);
   });
   it("has unique ids that follow the slug convention", () => {
     const ids = new Set<string>();
@@ -26,6 +26,22 @@ describe("catalog integrity", () => {
       expect(p.hex, p.id).toMatch(/^#[0-9A-F]{6}$/);
       expect(() => hexToRgb(p.hex)).not.toThrow();
       expect(TYPES.has(p.type), `${p.id} type ${p.type}`).toBe(true);
+    }
+  });
+  it("covers the current Army Painter ranges", () => {
+    const ap = (range: string) => ALL_PAINTS.filter((p) => p.brand === "army_painter" && p.range === range).length;
+    expect(ap("Warpaints Fanatic")).toBeGreaterThanOrEqual(160);
+    expect(ap("Warpaints Fanatic Metallics")).toBe(18);
+    expect(ap("Speedpaint 2.0")).toBeGreaterThanOrEqual(90);
+    expect(ap("Warpaints Air")).toBeGreaterThan(100);
+    expect(ALL_PAINTS.filter((p) => p.brand === "army_painter" && p.range === "Speedpaint 2.0" && p.finish === "metallic").length).toBe(10);
+  });
+  it("does not list the same paint twice within a range", () => {
+    const seen = new Set<string>();
+    for (const p of ALL_PAINTS) {
+      const k = `${p.brand}|${p.range}|${p.name.toLowerCase()}|${p.code ?? ""}`;
+      expect(seen.has(k), `duplicate ${k}`).toBe(false);
+      seen.add(k);
     }
   });
   it("does not duplicate a code within a brand", () => {
