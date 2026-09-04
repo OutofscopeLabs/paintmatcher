@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ALL_PAINTS, BRAND_LABEL } from "@/lib/catalog";
 import { useCollection } from "@/lib/collection-context";
@@ -61,7 +62,7 @@ export default function MapPage() {
       </div>
 
       {ready && ownedOnly && ownedShown === 0 && (
-        <div className="notice">You have not added any paints yet — <a href="/">scan a photo</a>, or untick “Only paints I own” to browse the whole catalog.</div>
+        <div className="notice">You have not added any paints yet — <Link href="/">scan a photo</Link>, or untick “Only paints I own” to browse the whole catalog.</div>
       )}
 
       <PaintMap points={points} onSelect={setDetail} selectedId={detail?.id} />

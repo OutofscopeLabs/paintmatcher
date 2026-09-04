@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { BRAND_LABEL, searchPaints } from "@/lib/catalog";
 import { useCollection } from "@/lib/collection-context";
@@ -69,7 +70,7 @@ export default function CollectionPage() {
         </div>
       </div>
 
-      {ready && collection.owned.length === 0 && <p className="empty">Nothing here yet. <a href="/">Scan a photo</a> or add paints by hand above.</p>}
+      {ready && collection.owned.length === 0 && <p className="empty">Nothing here yet. <Link href="/">Scan a photo</Link> or add paints by hand above.</p>}
 
       {groups.map(([title, list]) => (
         <section key={title}>

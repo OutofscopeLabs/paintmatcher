@@ -1,21 +1,18 @@
 "use client";
+import Link from "next/link";
 import { useCallback, useState } from "react";
 import { ALL_PAINTS, BRAND_LABEL, getPaint } from "@/lib/catalog";
 import { useCollection } from "@/lib/collection-context";
 import { prepareImage, type PreparedImage } from "@/lib/image";
 import type { Detection } from "@/lib/match";
+import { recognizeImages, type RecognitionResult } from "@/lib/recognize";
+import { DEFAULTS, type Settings } from "@/lib/settings";
 import { slug } from "@/lib/text";
 import type { Paint } from "@/lib/types";
+import { ApiKeyPanel } from "@/components/ApiKeyPanel";
 import { PaintDetail } from "@/components/PaintDetail";
 import { PaintPicker } from "@/components/PaintPicker";
 import { PaintSwatch, Swatch } from "@/components/Swatch";
-
-interface ApiMatch {
-  detection: Detection;
-  best: { paintId: string; score: number; reason: string } | null;
-  candidates: { paintId: string; score: number; reason: string }[];
-}
-interface ApiResponse { matches: ApiMatch[]; caveats: string[]; usage: { model: string; inputTokens: number; cachedTokens: number; outputTokens: number } }
 
 interface ReviewRow {
   key: string;
@@ -35,7 +32,8 @@ export default function ScanPage() {
   const [error, setError] = useState<string | null>(null);
   const [rows, setRows] = useState<ReviewRow[] | null>(null);
   const [caveats, setCaveats] = useState<string[]>([]);
-  const [usage, setUsage] = useState<ApiResponse["usage"] | null>(null);
+  const [usage, setUsage] = useState<RecognitionResult["usage"] | null>(null);
+  const [settings, setSettings] = useState<Settings>(DEFAULTS);
   const [dragOver, setDragOver] = useState(false);
   const [detail, setDetail] = useState<Paint | null>(null);
   const [added, setAdded] = useState<number | null>(null);
@@ -55,21 +53,16 @@ export default function ScanPage() {
   const recognize = async () => {
     setBusy("recognize"); setError(null); setRows(null); setAdded(null);
     try {
-      const res = await fetch("/api/recognize", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ images: images.map((i) => ({ data: i.data, mediaType: i.mediaType })) }),
-      });
-      const json = (await res.json()) as ApiResponse | { error: string };
-      if (!res.ok || "error" in json) throw new Error("error" in json ? json.error : `HTTP ${res.status}`);
-      setRows(json.matches.map((m, i) => ({
+      const result = await recognizeImages(images.map((i) => ({ data: i.data, mediaType: i.mediaType })), settings.apiKey, settings.model);
+      setRows(result.matches.map((m, i) => ({
         key: `${i}-${m.detection.name}`,
         detection: m.detection,
-        candidates: m.candidates,
-        chosen: m.best?.paintId ?? null,
+        candidates: m.candidates.map((c) => ({ paintId: c.paint.id, score: c.score })),
+        chosen: m.best?.paint.id ?? null,
         include: true,
         qty: m.detection.count,
       })));
-      setCaveats(json.caveats); setUsage(json.usage);
+      setCaveats(result.caveats); setUsage(result.usage);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Recognition failed");
     } finally { setBusy(null); }
@@ -107,8 +100,10 @@ export default function ScanPage() {
         <p className="lead">Photograph a shelf, rack or handful of pots. Labels facing the camera, decent light, and no more than a couple of dozen pots per photo works best. PaintMatcher reads the labels, matches them against {ALL_PAINTS.length} catalogued Citadel, Army Painter and Vallejo paints, and lets you confirm before anything is added.</p>
       </div>
 
-      {added !== null && <div className="notice">Added {added} pot{added === 1 ? "" : "s"} to your collection. <a href="/collection">View collection</a> or <a href="/map">see them on the map</a>.</div>}
+      {added !== null && <div className="notice">Added {added} pot{added === 1 ? "" : "s"} to your collection. <Link href="/collection">View collection</Link> or <Link href="/map">see them on the map</Link>.</div>}
       {error && <div className="notice error">{error}</div>}
+
+      <ApiKeyPanel onChange={setSettings} />
 
       <div className={`dropzone${dragOver ? " active" : ""}`}
         onDragOver={(e) => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)}
@@ -132,7 +127,7 @@ export default function ScanPage() {
             ))}
           </div>
           <div className="row">
-            <button className="btn primary" disabled={busy !== null} onClick={recognize}>{busy === "recognize" ? "Reading labels…" : "Identify paints"}</button>
+            <button className="btn primary" disabled={busy !== null || !settings.apiKey} title={settings.apiKey ? "" : "Add your API key first"} onClick={recognize}>{busy === "recognize" ? "Reading labels…" : "Identify paints"}</button>
             <button className="btn ghost" disabled={busy !== null} onClick={() => { setImages([]); setRows(null); }}>Clear</button>
             {busy === "recognize" && <span className="stat">This takes 15–60 seconds depending on how many pots are in shot.</span>}
           </div>

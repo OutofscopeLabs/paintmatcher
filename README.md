@@ -4,29 +4,38 @@ Photograph your miniature paints, have them identified and catalogued automatica
 
 Covers **Citadel**, **The Army Painter** and **Vallejo** out of the box, with a data-driven catalog you can extend.
 
+It is a fully static site: there is no server, so it can be served straight from this repository with GitHub Pages. Photo recognition calls the Anthropic API directly from your browser with your own key, which is kept in the browser's local storage.
+
 ## What it does
 
-- **Scan** – drop or take photos of your pots and bottles. A vision model reads the labels (brand, range, name, product code) and each reading is matched against the catalog by code, exact name and fuzzy name. You review every detection, fix any misreads from a dropdown or catalog search, set quantities, and add them to your collection. Pots that are not in the catalog are still kept as "unlisted" paints.
+- **Scan** – drop or take photos of your pots and bottles. Claude reads the labels (brand, range, name, product code) and each reading is matched against the catalog by code, exact name and fuzzy name. You review every detection, fix any misreads from a dropdown or catalog search, set quantities, and add them to your collection. Pots that are not in the catalog are still kept as "unlisted" paints.
 - **Collection** – everything you own grouped by brand and range, with quantities, search, manual add, and JSON export/import. The collection lives in your browser's local storage.
 - **Encyclopedia** – browse the whole catalog by brand and range, sort by hue or lightness, filter by type, and open any paint for its detail panel. Owned paints are ticked.
 - **Map** – every paint plotted by hue and lightness (neutrals in their own column). Owned paints are solid, the rest of the catalog faint. Filter by brand and paint type, zoom and pan, and click a dot for its detail panel.
 - **Paint detail** – colour description, texture and consistency out of the pot, how to apply it, what it is useful for on miniatures, tips, the closest equivalent in each other brand (CIE Lab distance), and similar colours across the catalog.
 
-## Running it
+## Running it locally
 
 ```bash
 npm install
-cp .env.example .env.local   # add your Anthropic API key
 npm run dev                  # http://localhost:3000
 ```
 
-Recognition calls the Claude API server-side from `src/app/api/recognize/route.ts`; the key never reaches the browser. The catalog listing is placed behind a prompt-cache breakpoint so repeated scans are cheap.
+Open the Scan page and paste an Anthropic API key into the key panel. The key is stored only in that browser. Recognition runs in `src/lib/recognize.ts`; the catalog listing sits behind a prompt-cache breakpoint so repeated scans are cheap.
 
 ```bash
-npm test        # vitest: colour maths, matcher, catalog integrity
+npm test          # vitest: colour maths, matcher, catalog integrity
 npm run typecheck
-npm run build
+npm run build     # static export into out/
 ```
+
+## Deploying with GitHub Pages
+
+`.github/workflows/pages.yml` builds the static export on every push to `main` and publishes it with GitHub's Pages actions. One-time setup in the repository: **Settings → Pages → Build and deployment → Source: GitHub Actions**. The site then lives at `https://<owner>.github.io/<repo>/`.
+
+The workflow sets `NEXT_PUBLIC_BASE_PATH` to `/<repo-name>` because project pages are served from a sub-path. For a custom domain or a user site, leave it unset.
+
+Because the site is static, the API key has to live in the browser. Use a key from a personal account with a spend limit, and treat the browser it is saved in as you would any device that holds a password. Anyone who can open your browser profile can read it.
 
 ## Photo tips
 
